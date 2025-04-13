@@ -8,27 +8,34 @@ import android.content.Intent
 import android.widget.ImageView
 import android.widget.Button
 import android.graphics.drawable.AnimationDrawable
+import android.media.MediaPlayer
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var characterImage: ImageView
     private lateinit var idleAnimation: AnimationDrawable
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Configuración animación idle
         characterImage = findViewById(R.id.character)
         startIdleAnimation()
 
-        // Botones de ataque
+        // Iniciar música de fondo
+        mediaPlayer = MediaPlayer.create(this, R.raw.background_music)
+        mediaPlayer?.isLooping = true
+        mediaPlayer?.start()
+
         findViewById<Button>(R.id.btnAttackA).setOnClickListener {
             playAttackAnimation(R.drawable.attack_a_animation)
+            playSFX(R.raw.attack_sound)
         }
 
         findViewById<Button>(R.id.btnAttackB).setOnClickListener {
             playAttackAnimation(R.drawable.attack_b_animation)
+            playSFX(R.raw.attack_sound)
         }
 
         findViewById<Button>(R.id.btnNext).setOnClickListener {
@@ -43,23 +50,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playAttackAnimation(animationRes: Int) {
-        // Detener animación actual
         if (::idleAnimation.isInitialized) {
             idleAnimation.stop()
         }
 
-        // Configurar y comenzar animación de ataque
         characterImage.setBackgroundResource(animationRes)
         val attackAnimation = characterImage.background as AnimationDrawable
         attackAnimation.start()
 
-        // Calcular duración total del ataque
-        val attackDuration = attackAnimation.numberOfFrames * 100 // 100ms por frame
-
-        // Restaurar idle después del ataque
+        val attackDuration = attackAnimation.numberOfFrames * 100
         Handler(Looper.getMainLooper()).postDelayed({
             attackAnimation.stop()
-            startIdleAnimation() // Reiniciar animación idle correctamente
+            startIdleAnimation()
         }, attackDuration.toLong())
+    }
+
+    private fun playSFX(soundResId: Int) {
+        val sfx = MediaPlayer.create(this, soundResId)
+        sfx.setOnCompletionListener {
+            it.release()
+        }
+        sfx.start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }

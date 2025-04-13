@@ -3,6 +3,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.RelativeLayout
+import android.media.MediaPlayer
 class ThirdActivity : AppCompatActivity() {
     private var isLeft = true
 
@@ -12,6 +13,8 @@ class ThirdActivity : AppCompatActivity() {
 
         val btnMove = findViewById<Button>(R.id.btnMove)
         btnMove.setOnClickListener {
+            playSFX(R.raw.button_click)
+
             val params = it.layoutParams as RelativeLayout.LayoutParams
             if (isLeft) {
                 params.removeRule(RelativeLayout.ALIGN_PARENT_START)
@@ -23,11 +26,18 @@ class ThirdActivity : AppCompatActivity() {
             it.layoutParams = params
             isLeft = !isLeft
 
-            // Animació suau
             it.animate()
                 .setDuration(300)
                 .rotationBy(360f)
                 .start()
         }
+    }
+
+    private fun playSFX(soundResId: Int) {
+        val sfx = MediaPlayer.create(this, soundResId)
+        sfx.setOnCompletionListener {
+            it.release()
+        }
+        sfx.start()
     }
 }
